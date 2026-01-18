@@ -7,11 +7,36 @@
     <title>Casa de Cambio</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("-k5JmBOPGTKg7eIRr");
+        })();
+    </script>
 </head>
 
 <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <svg class="loading-logo pulse-animation" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2">
+                <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" />
+            </svg>
+            <h1 class="loading-greeting fade-in" id="loadingGreeting">¡Hola!</h1>
+            <div class="loading-bar-container">
+                <div class="loading-bar" id="loadingBar"></div>
+            </div>
+            <p class="loading-message fade-in" id="loadingMessage">Cargando tu espacio...</p>
+        </div>
+    </div>
+
     <!-- Mobile Menu Toggle -->
-    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" id="mobileMenuBtn">
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()" id="mobileMenuBtn" style="display: none;">
         <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
             <line x1="3" y1="12" x2="21" y2="12" />
             <line x1="3" y1="6" x2="21" y2="6" />
@@ -19,28 +44,209 @@
         </svg>
     </button>
 
-    <!-- Sidebar Overlay for Mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleMobileMenu()"></div>
 
-    <!-- PIN LOGIN -->
-    <div id="pinContainer" class="pin-container">
-        <svg class="pin-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" stroke="#2563eb" />
-        </svg>
-        <h1 class="pin-title">Casa de Cambio</h1>
-        <p class="pin-subtitle">Ingresa tu PIN para acceder</p>
-        <input type="password" id="pinInput" class="pin-input" maxlength="4" placeholder="••••" autofocus>
-        <div id="pinError" class="pin-error">PIN incorrecto. Intenta nuevamente.</div>
-        <button class="btn-login" onclick="validatePin()">Ingresar</button>
+    <!-- AUTH CONTAINER -->
+    <div id="authContainer" class="auth-container">
+        <!-- Login Form -->
+        <div id="loginForm" class="auth-form active">
+            <svg class="auth-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" />
+            </svg>
+            <h1 class="auth-title">Casa de Cambio</h1>
+            <p class="auth-subtitle">Inicia sesión en tu cuenta</p>
+
+            <div class="form-group">
+                <label class="form-label">Usuario o Correo</label>
+                <input type="text" id="loginUser" class="form-input" placeholder="usuario@email.com"
+                    onkeypress="handleEnter(event, 'login')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <div style="position: relative;">
+                    <input type="password" id="loginPassword" class="form-input" placeholder="••••••••"
+                        onkeypress="handleEnter(event, 'login')">
+                    <button type="button" class="toggle-password" onclick="togglePassword('loginPassword')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="loginError" class="auth-error"></div>
+
+            <button class="btn-auth" onclick="handleLogin()">
+                <span>Iniciar Sesión</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </button>
+
+            <div class="auth-links">
+                <a href="#" onclick="event.preventDefault(); showForgotPassword()">¿Olvidaste tu contraseña?</a>
+                <a href="#" onclick="event.preventDefault(); showRegister()">Crear cuenta nueva</a>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerForm" class="auth-form">
+            <svg class="auth-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" />
+            </svg>
+            <h1 class="auth-title">Crear Cuenta</h1>
+            <p class="auth-subtitle">Únete a Casa de Cambio</p>
+
+            <div class="form-group">
+                <label class="form-label">Nombre de Usuario</label>
+                <input type="text" id="registerUser" class="form-input" placeholder="Tu nombre"
+                    onkeypress="handleEnter(event, 'register')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" id="registerEmail" class="form-input" placeholder="tu@email.com"
+                    onkeypress="handleEnter(event, 'register')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <div style="position: relative;">
+                    <input type="password" id="registerPassword" class="form-input" placeholder="••••••••"
+                        onkeypress="handleEnter(event, 'register')">
+                    <button type="button" class="toggle-password" onclick="togglePassword('registerPassword')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirmar Contraseña</label>
+                <div style="position: relative;">
+                    <input type="password" id="registerConfirm" class="form-input" placeholder="••••••••"
+                        onkeypress="handleEnter(event, 'register')">
+                    <button type="button" class="toggle-password" onclick="togglePassword('registerConfirm')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="registerError" class="auth-error"></div>
+
+            <button class="btn-auth" onclick="handleRegister()">
+                <span>Registrarse</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </button>
+
+            <div class="auth-links">
+                <a href="#" onclick="event.preventDefault(); showLogin()">Ya tengo cuenta</a>
+            </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgotForm" class="auth-form">
+            <svg class="auth-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" />
+            </svg>
+            <h1 class="auth-title">Recuperar Contraseña</h1>
+            <p class="auth-subtitle">Te enviaremos un código de verificación</p>
+
+            <div class="form-group">
+                <label class="form-label">Correo Electrónico</label>
+                <input type="email" id="forgotEmail" class="form-input" placeholder="tu@email.com">
+            </div>
+
+            <div id="forgotError" class="auth-error"></div>
+
+            <button class="btn-auth" onclick="handleForgotPassword(this)">
+                <span>Enviar Código</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </button>
+
+            <div class="auth-links">
+                <a href="#" onclick="event.preventDefault(); showLogin()">Volver al inicio</a>
+            </div>
+        </div>
+
+        <!-- Verify Code Form -->
+        <div id="verifyForm" class="auth-form">
+            <svg class="auth-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" />
+            </svg>
+            <h1 class="auth-title">Código de Verificación</h1>
+            <p class="auth-subtitle">Ingresa el código enviado a tu correo</p>
+
+            <div class="form-group">
+                <label class="form-label">Código de Verificación</label>
+                <input type="text" id="verifyCode" class="form-input" placeholder="123456" maxlength="6"
+                    onkeypress="handleEnter(event, 'verify')">
+                <button type="button" id="verifyResend" class="btn btn-sm btn-secondary" onclick="resendCodeVerify()"
+                    style="margin-top: 0.5rem; width: 100%; font-size: 0.85rem;">
+                    Reenviar código
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Nueva Contraseña</label>
+                <div style="position: relative;">
+                    <input type="password" id="newPassword" class="form-input" placeholder="••••••••"
+                        onkeypress="handleEnter(event, 'verify')">
+                    <button type="button" class="toggle-password" onclick="togglePassword('newPassword')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirmar Nueva Contraseña</label>
+                <div style="position: relative;">
+                    <input type="password" id="confirmNewPassword" class="form-input" placeholder="••••••••"
+                        onkeypress="handleEnter(event, 'verify')">
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirmNewPassword')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <div id="verifyError" class="auth-error"></div>
+
+            <button class="btn-auth" onclick="handleVerifyCode()">
+                <span>Cambiar Contraseña</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </button>
+
+            <div class="auth-links">
+                <a href="#" onclick="event.preventDefault(); showLogin()">Volver al inicio</a>
+            </div>
+        </div>
     </div>
 
     <!-- DASHBOARD -->
     <div id="dashboardWrapper" class="dashboard-wrapper">
-        <!-- Sidebar -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <svg class="sidebar-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" stroke="#2563eb" />
+                    <path d="M12 2v20M2 12h20M17 7l-10 10M7 7l10 10" />
                 </svg>
                 <div class="sidebar-title">Casa de Cambio</div>
             </div>
@@ -48,8 +254,8 @@
                 <svg class="user-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
                 </svg>
-                <div style="font-size: 1.2rem; font-weight: 700;">Bienvenido</div>
-                <div style="font-size: 1.1rem;">Jhonny Oré</div>
+                <div style="font-size: 1rem; font-weight: 700;">Bienvenido</div>
+                <div style="font-size: 0.9rem;" id="sidebarUsername">USUARIO</div>
             </div>
             <ul class="nav-menu">
                 <li class="nav-item active" onclick="showSection('dashboard')">
@@ -76,10 +282,10 @@
                 </li>
                 <li class="nav-item" onclick="showSection('trash')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                        <line x1="10" y1="11" x2="10" y2="17"/>
-                        <line x1="14" y1="11" x2="14" y2="17"/>
+                        <polyline points="3 6 5 6 21 6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
                     </svg>
                     <span>Papelera</span>
                 </li>
@@ -88,6 +294,14 @@
                         <path d="M18 20V10M12 20V4M6 20v-6" />
                     </svg>
                     <span>Estadísticas</span>
+                </li>
+                <li class="nav-item" onclick="showSection('settings')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3" />
+                        <path
+                            d="M12 1v6m0 6v6M5.64 5.64l4.24 4.24m4.24 4.24l4.24 4.24M1 12h6m6 0h6M5.64 18.36l4.24-4.24m4.24-4.24l4.24-4.24" />
+                    </svg>
+                    <span>Configuración</span>
                 </li>
                 <li>
                     <button class="btn-logout" onclick="logout()">
@@ -100,22 +314,30 @@
             </ul>
         </aside>
 
-        <!-- Main Content -->
         <main class="main-content">
             <div class="top-bar">
                 <h1 class="page-title" id="pageTitle">Dashboard</h1>
                 <div class="top-bar-actions">
-                    <div class="dollars-available">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="1" x2="12" y2="23" />
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
-                        <div>
-                            <div class="dollars-label">Dólares Disponibles</div>
-                            <div class="dollars-value" id="dollarsAvailable">$0.00</div>
+                    <div class="dollars-container">
+                        <div class="dollars-available" onclick="toggleDollarBlocks()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="1" x2="12" y2="23" />
+                                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                            </svg>
+                            <div>
+                                <div class="dollars-label">Dólares Disponibles</div>
+                                <div class="dollars-value" id="dollarsAvailable">$0.00</div>
+                            </div>
+                            <svg class="dropdown-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </div>
+                        <div id="dollarBlocksDropdown" class="dollar-blocks-dropdown">
+                            <div class="dollar-blocks-content">
+                                <div id="dollarBlocksList" class="dollar-blocks-list"></div>
+                            </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -160,19 +382,27 @@
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">Tipo de Cambio Actual</h2>
+                        <button class="btn btn-primary btn-sm" onclick="openDollarLink()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path
+                                    d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" />
+                            </svg>
+                            Ver Dólar
+                        </button>
                     </div>
                     <div class="rate-display">
                         <div class="rate-box">
-                            <div class="rate-label">Compra USD</div>
+                            <div class="rate-label">Mi Tasa de Compra</div>
                             <div class="rate-value" id="buyRate">S/ 0.00</div>
                         </div>
                         <div class="rate-box">
-                            <div class="rate-label">Venta USD</div>
+                            <div class="rate-label">Mi Tasa de Venta</div>
                             <div class="rate-value" id="sellRate">S/ 0.00</div>
                         </div>
                         <div class="rate-box">
-                            <div class="rate-label">Tipo Oficial (API)</div>
+                            <div class="rate-label">Tasa Oficial (API)</div>
                             <div class="rate-value" id="officialRate">S/ 0.00</div>
+                            <div class="rate-update" id="lastUpdate">Actualizado hace unos momentos</div>
                         </div>
                     </div>
                 </div>
@@ -181,7 +411,6 @@
                     <div class="section-header">
                         <h2 class="section-title">Operaciones Recientes</h2>
                     </div>
-
                     <div class="filter-group">
                         <div class="form-group" style="margin: 0; flex: 1; min-width: 200px;">
                             <label class="form-label">Fecha Específica</label>
@@ -193,17 +422,16 @@
                         <button class="filter-btn" onclick="filterOperations('month')">Este Mes</button>
                         <button class="filter-btn" onclick="filterOperations('year')">Este Año</button>
                     </div>
-
                     <div class="table-responsive">
                         <table id="recentOperationsTable">
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
                                     <th>Tipo</th>
-                                    <th>Monto USD</th>
-                                    <th>Monto PEN</th>
-                                    <th>Tasa Usada</th>
-                                    <th>Tasa Compré</th>
+                                    <th>USD</th>
+                                    <th>SOLES</th>
+                                    <th>Tasa</th>
+                                    <th>Tasa Comprada</th>
                                     <th>Ganancia</th>
                                 </tr>
                             </thead>
@@ -215,131 +443,99 @@
 
             <!-- EXCHANGE SECTION -->
             <div id="exchange-section" class="content-section">
-                <div class="exchange-calculator-wrapper">
-                    <!-- Left Column -->
-                    <div class="exchange-left-column">
-                        <div class="compact-section">
-                            <div class="compact-section-header">
-                                <h2 class="compact-section-title">Configurar Tipos de Cambio</h2>
-                                <button class="btn btn-primary compact-btn"
-                                    onclick="fetchOfficialRate(); window.open('https://www.google.com/search?q=precio+del+dolar', '_blank')">
-
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                        <path
-                                            d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
-                                    </svg>
-                                    Actualizar y ver dólar
-                                </button>
-
-                            </div>
-                            <div style="display: grid; gap: 0.75rem; flex: 1;">
-                                <div class="form-group">
-                                    <label class="form-label">Tasa Oficial (API)</label>
-                                    <input type="number" id="officialRateInput" class="form-input" step="0.01" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Tasa a la que compré</label>
-                                    <input type="number" id="purchaseRateInput" class="form-input" step="0.01"
-                                        placeholder="3.68">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Mi Tasa de Compra USD</label>
-                                    <input type="number" id="buyRateInput" class="form-input" step="0.01"
-                                        placeholder="3.70">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Mi Tasa de Venta USD</label>
-                                    <input type="number" id="sellRateInput" class="form-input" step="0.01"
-                                        placeholder="3.75">
-                                </div>
-                                <button class="btn btn-primary" onclick="saveRates()" style="margin-top: auto;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                                        <polyline points="17 21 17 13 7 13 7 21" />
-                                        <polyline points="7 3 7 8 15 8" />
-                                    </svg>
-                                    Guardar Tasas
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Column -->
-                    <div class="exchange-right-column">
-                        <div class="compact-section">
-                            <div class="compact-section-header">
-                                <h2 class="compact-section-title">Registrar Operación</h2>
-                                <button class="btn btn-primary compact-btn" id="autoPrintBtn" onclick="toggleAutoPrint()" title="Activar/Desactivar impresión automática">
-                                    <svg id="autoPrintIcon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                        <polyline points="6 9 6 2 18 2 18 9"/>
-                                        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                                        <rect x="6" y="14" width="12" height="8"/>
-                                    </svg>
-                                    Auto-Imprimir
-                                </button>
-                            </div>
-                            <div style="display: grid; gap: 0.75rem; flex: 1;">
-                                <div class="form-group">
-                                    <label class="form-label">Tipo de Operación</label>
-                                    <select id="operationType" class="form-input" onchange="updateOperationForm()">
-                                        <option value="compra">Compra de Dólares</option>
-                                        <option value="venta">Venta de Dólares</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Monto en USD</label>
-                                    <input type="number" id="amountUSD" class="form-input" step="0.01"
-                                        placeholder="100.00" oninput="calculateProfit()">
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Monto en Soles</label>
-                                    <input type="number" id="amountPEN" class="form-input" step="0.01" readonly>
-                                </div>
-                                <div class="form-group">
-                                    <label class="form-label">Ganancia Estimada</label>
-                                    <input type="number" id="profitAmount" class="form-input" step="0.01" readonly>
-                                </div>
-                                <button class="btn btn-primary" onclick="registerOperation()" style="margin-top: auto;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                        <polyline points="20 6 9 17 4 12" />
-                                    </svg>
-                                    Realizar Cambio
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Calculator Section -->
-                    <div class="calculator-section" id="calculatorSection">
-                        <div class="calculator-header">
-                            <h3 style="font-size: 1.2rem; color: var(--text-dark);">Calculadora de Conversión</h3>
-                            <button class="btn-toggle-calc" onclick="toggleCalculator()">
-                                <svg id="toggleCalcIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <div class="exchange-container">
+                    <div class="exchange-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Registrar Operación</h2>
+                            <button class="btn-icon" id="autoPrintBtn" onclick="toggleAutoPrint()"
+                                title="Activar/Desactivar impresión automática">
+                                <svg id="autoPrintIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2">
-                                    <polyline points="18 15 12 9 6 15" />
+                                    <polyline points="6 9 6 2 18 2 18 9" />
+                                    <path
+                                        d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                                    <rect x="6" y="14" width="12" height="8" />
                                 </svg>
                             </button>
                         </div>
-
-                        <div class="calculator-content" id="calculatorContent">
-                            <!-- Calculadora Compra -->
-                            <div class="calc-input-group">
-                                <label class="form-label">Soles (PEN) → USD (Tasa Compra)</label>
-                                <input type="number" id="calcPENBuy" class="form-input" step="0.01" placeholder="0.00"
-                                    oninput="convertPENtoUSDCompra()">
-                                <div class="calc-result" id="resultUSDBuy">$0.00 USD</div>
+                        <div class="card-body">
+                            <div class="form-group-compact">
+                                <label class="form-label">Tipo de Operación</label>
+                                <div class="button-group">
+                                    <button class="btn-toggle active" id="btnCompra"
+                                        onclick="selectOperationType('compra')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                                        </svg>
+                                        Compra
+                                    </button>
+                                    <button class="btn-toggle" id="btnVenta" onclick="selectOperationType('venta')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M3 17v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4M7 16l5 5 5-5M12 21V9" />
+                                        </svg>
+                                        Venta
+                                    </button>
+                                </div>
                             </div>
-
-                            <div style="border-top: 2px solid var(--border); margin: 1.5rem 0; padding-top: 1.5rem;">
+                            <div class="form-group-compact">
+                                <label class="form-label">Monto en USD</label>
+                                <input type="number" id="amountUSD" class="form-input-compact" step="0.01"
+                                    placeholder="100.00" oninput="calculateProfit()">
                             </div>
-
-                            <!-- Calculadora Venta -->
-                            <div class="calc-input-group">
-                                <label class="form-label">Soles (PEN) → USD (Tasa Venta)</label>
-                                <input type="number" id="calcPENSell" class="form-input" step="0.01" placeholder="0.00"
-                                    oninput="convertPENtoUSDVenta()">
-                                <div class="calc-result" id="resultUSDSell">$0.00 USD</div>
+                            <div class="form-group-compact">
+                                <label class="form-label">Monto en Soles</label>
+                                <input type="number" id="amountPEN" class="form-input-compact" step="0.01" readonly>
                             </div>
+                            <div class="form-group-compact" id="profitGroup">
+                                <label class="form-label">Ganancia Estimada</label>
+                                <input type="number" id="profitAmount" class="form-input-compact profit-highlight"
+                                    step="0.01" readonly>
+                            </div>
+                            <button class="btn btn-success btn-block" onclick="registerOperation()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                Realizar Cambio
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="exchange-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Configurar Tasas</h2>
+                            <div class="unsaved-badge" id="unsavedRatesBadge" style="display: none;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                                Cambios sin guardar
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group-compact">
+                                <label class="form-label">Tasa Oficial (API)</label>
+                                <input type="number" id="officialRateInput" class="form-input-compact" step="0.01"
+                                    readonly>
+                            </div>
+                            <div class="form-group-compact">
+                                <label class="form-label">Mi Tasa de Compra</label>
+                                <input type="number" id="buyRateInput" class="form-input-compact" step="0.01"
+                                    placeholder="3.70" oninput="markRatesUnsaved()">
+                            </div>
+                            <div class="form-group-compact">
+                                <label class="form-label">Mi Tasa de Venta</label>
+                                <input type="number" id="sellRateInput" class="form-input-compact" step="0.01"
+                                    placeholder="3.75" oninput="markRatesUnsaved()">
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="saveRates()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                    <polyline points="17 21 17 13 7 13 7 21" />
+                                    <polyline points="7 3 7 8 15 8" />
+                                </svg>
+                                Guardar Tasas
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -350,31 +546,8 @@
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">Historial de Operaciones</h2>
-                        <button class="btn btn-primary" onclick="loadHistory()">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                <path
-                                    d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2" />
-                            </svg>
-                            Actualizar
-                        </button>
                     </div>
-                    <div class="table-responsive">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Tipo</th>
-                                    <th>USD</th>
-                                    <th>Soles</th>
-                                    <th>Tasa Usada</th>
-                                    <th>Tasa Compré</th>
-                                    <th>Ganancia</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyTableBody"></tbody>
-                        </table>
-                    </div>
+                    <div id="historyByMonth" class="history-by-month"></div>
                 </div>
             </div>
 
@@ -383,10 +556,11 @@
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">Papelera de Reciclaje</h2>
-                        <button class="btn btn-danger" onclick="emptyTrash()">
+                        <button class="btn btn-danger" onclick="confirmEmptyTrash()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <polyline points="3 6 5 6 21 6" />
+                                <path
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                             </svg>
                             Vaciar Papelera
                         </button>
@@ -395,13 +569,13 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Fecha Eliminación</th>
-                                    <th>Fecha Operación</th>
+                                    <th>Eliminado</th>
+                                    <th>Fecha</th>
                                     <th>Tipo</th>
                                     <th>USD</th>
-                                    <th>Soles</th>
-                                    <th>Tasa Usada</th>
-                                    <th>Ganancia</th>
+                                    <th>SOLES</th>
+                                    <th>Tasa</th>
+                                    <th>Tasa Comprada</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -445,7 +619,6 @@
                         <div class="stat-label">Ganancia Promedio</div>
                     </div>
                 </div>
-
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">Operaciones por Tipo</h2>
@@ -454,7 +627,6 @@
                         <canvas id="operationsChart"></canvas>
                     </div>
                 </div>
-
                 <div class="section">
                     <div class="section-header">
                         <h2 class="section-title">Ganancias Semanales</h2>
@@ -464,47 +636,177 @@
                     </div>
                 </div>
             </div>
+
+            <!-- SETTINGS SECTION -->
+            <div id="settings-section" class="content-section">
+                <div class="settings-layout">
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Cuenta</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group-compact">
+                                <label class="form-label">Nombre de Usuario</label>
+                                <input type="text" id="settingsUsername" class="form-input-compact"
+                                    placeholder="Tu nombre" oninput="markSettingsUnsaved()">
+                            </div>
+                            <div class="form-group-compact">
+                                <label class="form-label">Correo Electrónico</label>
+                                <input type="email" id="settingsEmail" class="form-input-compact"
+                                    placeholder="tu@email.com" oninput="markSettingsUnsaved()">
+                            </div>
+                            <div class="unsaved-badge" id="unsavedSettingsBadge"
+                                style="display: none; margin-bottom: 1rem;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="8" x2="12" y2="12" />
+                                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                                </svg>
+                                Cambios sin guardar
+                            </div>
+                            <button class="btn btn-primary btn-block" onclick="updateUserInfo()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                    <polyline points="17 21 17 13 7 13 7 21" />
+                                    <polyline points="7 3 7 8 15 8" />
+                                </svg>
+                                Actualizar Información
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Seguridad</h2>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: var(--text-gray); margin-bottom: 1rem; font-size: 0.9rem;">Cambia tu
+                                contraseña para mantener tu cuenta segura</p>
+                            <button class="btn btn-secondary btn-block" onclick="openChangePassword()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                                Cambiar Contraseña
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Zona Peligrosa</h2>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: var(--text-gray); margin-bottom: 1rem; font-size: 0.9rem;">Esta acción
+                                desactivará tu cuenta permanentemente</p>
+                            <button class="btn btn-danger btn-block" onclick="requestAccountDeletion()">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <path
+                                        d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                </svg>
+                                Eliminar Cuenta
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <h2 class="card-title">Apariencia</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="theme-selector">
+                                <div class="theme-option" onclick="changeTheme('light')">
+                                    <div class="theme-preview theme-light"></div>
+                                    <div class="theme-name">Claro</div>
+                                </div>
+                                <div class="theme-option" onclick="changeTheme('dark')">
+                                    <div class="theme-preview theme-dark"></div>
+                                    <div class="theme-name">Oscuro</div>
+                                </div>
+                                <div class="theme-option" onclick="changeTheme('ocean')">
+                                    <div class="theme-preview theme-ocean"></div>
+                                    <div class="theme-name">Océano</div>
+                                </div>
+                                <div class="theme-option" onclick="changeTheme('sunset')">
+                                    <div class="theme-preview theme-sunset"></div>
+                                    <div class="theme-name">Atardecer</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="toast-notification">
+        <div class="toast-content">
+            <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                <polyline points="20 6 9 17 4 12" />
+            </svg>
+            <div class="toast-text">
+                <div class="toast-title" id="toastTitle">Éxito</div>
+                <div class="toast-message" id="toastMessage">Operación completada</div>
+            </div>
+            <button class="toast-close" onclick="closeToast()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+        </div>
+        <div class="toast-progress" id="toastProgress"></div>
+    </div>
+
+    <!-- Generic Modal -->
+    <div id="genericModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Título</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalFooter"></div>
+        </div>
     </div>
 
     <!-- Edit Modal -->
     <div id="editModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-content-compact">
             <div class="modal-header">
                 <h2>Editar Operación</h2>
                 <button class="modal-close" onclick="closeEditModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Fecha</label>
-                    <input type="datetime-local" id="editDate" class="form-input">
+                <div class="form-group-compact">
+                    <label class="form-label">Fecha y Hora</label>
+                    <input type="datetime-local" id="editDate" class="form-input-compact">
                 </div>
-                <div class="form-group">
+                <div class="form-group-compact">
                     <label class="form-label">Tipo</label>
-                    <select id="editType" class="form-input">
-                        <option value="compra">Compra</option>
-                        <option value="venta">Venta</option>
-                    </select>
+                    <div class="button-group">
+                        <button class="btn-toggle" id="editBtnCompra" onclick="selectEditType('compra')">Compra</button>
+                        <button class="btn-toggle" id="editBtnVenta" onclick="selectEditType('venta')">Venta</button>
+                    </div>
                 </div>
-                <div class="form-group">
+                <div class="form-group-compact">
                     <label class="form-label">Monto USD</label>
-                    <input type="number" id="editUSD" class="form-input" step="0.01">
+                    <input type="number" id="editUSD" class="form-input-compact" step="0.01"
+                        oninput="calculateEditProfit()">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Monto PEN</label>
-                    <input type="number" id="editPEN" class="form-input" step="0.01">
-                </div>
-                <div class="form-group">
+                <div class="form-group-compact">
                     <label class="form-label">Tasa Usada</label>
-                    <input type="number" id="editRate" class="form-input" step="0.01">
+                    <input type="number" id="editRate" class="form-input-compact" step="0.01"
+                        oninput="calculateEditProfit()">
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Tasa a la que compré</label>
-                    <input type="number" id="editPurchaseRate" class="form-input" step="0.01">
+                <div class="form-group-compact">
+                    <label class="form-label">Monto PEN (calculado)</label>
+                    <input type="number" id="editPEN" class="form-input-compact" step="0.01" readonly>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Ganancia (calculado automáticamente)</label>
-                    <input type="number" id="editProfit" class="form-input" step="0.01" readonly>
+                <div class="form-group-compact" id="editProfitGroup">
+                    <label class="form-label">Ganancia (calculada)</label>
+                    <input type="number" id="editProfit" class="form-input-compact" step="0.01" readonly>
                 </div>
             </div>
             <div class="modal-footer">
@@ -514,19 +816,105 @@
         </div>
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- Change Password Modal -->
+    <div id="changePasswordModal" class="modal">
+        <div class="modal-content modal-content-compact">
+            <div class="modal-header">
+                <h2>Cambiar Contraseña</h2>
+                <button class="modal-close" onclick="closeChangePasswordModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group-compact">
+                    <label class="form-label">Código de Verificación</label>
+                    <input type="text" id="verifyCodeChange" class="form-input-compact" placeholder="123456"
+                        maxlength="6">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                        <small style="color: var(--text-gray); font-size: 0.75rem;">
+                            Revisa tu correo electrónico
+                        </small>
+                        <button type="button" id="changePasswordResend" class="btn btn-sm btn-secondary"
+                            onclick="resendCodeChangePassword()" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">
+                            Reenviar código
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group-compact">
+                    <label class="form-label">Nueva Contraseña</label>
+                    <div style="position: relative;">
+                        <input type="password" id="newPasswordChange" class="form-input-compact" placeholder="••••••••">
+                        <button type="button" class="toggle-password" onclick="togglePassword('newPasswordChange')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group-compact">
+                    <label class="form-label">Confirmar Nueva Contraseña</label>
+                    <div style="position: relative;">
+                        <input type="password" id="confirmPasswordChange" class="form-input-compact"
+                            placeholder="••••••••">
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirmPasswordChange')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="changePasswordError" class="auth-error"></div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeChangePasswordModal()">Cancelar</button>
+                    <button class="btn btn-primary" onclick="savePasswordChange()">Cambiar Contraseña</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteAccountModal" class="modal">
+        <div class="modal-content modal-content-compact">
+            <div class="modal-header">
+                <h2>Eliminar Cuenta</h2>
+                <button class="modal-close" onclick="closeDeleteAccountModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--danger); font-weight: 600; margin-bottom: 1rem;">⚠️ Esta acción desactivará
+                    tu
+                    cuenta permanentemente</p>
+                <div class="form-group-compact">
+                    <label class="form-label">Código de Verificación</label>
+                    <input type="text" id="deleteAccountCode" class="form-input-compact" placeholder="123456"
+                        maxlength="6" onkeypress="handleEnter(event, 'deleteAccount')">
+                    <button type="button" id="deleteAccountResend" class="btn btn-sm btn-secondary"
+                        onclick="resendCodeDeleteAccount()"
+                        style="margin-top: 0.5rem; width: 100%; font-size: 0.85rem;">
+                        Reenviar código
+                    </button>
+                </div>
+                <div id="deleteAccountError" class="auth-error"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteAccountModal()">Cancelar</button>
+                <button class="btn btn-danger" onclick="confirmAccountDeletion()">Eliminar Cuenta</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getDatabase, ref, set, get, push, remove, onValue, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js';
+        import { getDatabase, ref, set, get, push, remove, onValue, update } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js';
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAZ2ijTrh23O8xvVUCqn03JFeFrJcFyaC8",
-            authDomain: "cambiodolar.firebaseapp.com",
-            databaseURL: "https://cambiodolar-default-rtdb.firebaseio.com",
-            projectId: "cambiodolar",
-            storageBucket: "cambiodolar.firebasestorage.app",
-            messagingSenderId: "477752095350",
-            appId: "1:477752095350:web:09ffefcc355863994c6557"
+            apiKey: "AIzaSyC8DR8GBg2AUPx55wCd7g9RR6Co7UCsdbw",
+            authDomain: "prueba-dolar.firebaseapp.com",
+            databaseURL: "https://prueba-dolar-default-rtdb.firebaseio.com",
+            projectId: "prueba-dolar",
+            storageBucket: "prueba-dolar.firebasestorage.app",
+            messagingSenderId: "1067223849762",
+            appId: "1:1067223849762:web:a3950b90c7d2c03f83e37b"
         };
 
         const app = initializeApp(firebaseConfig);
@@ -545,6 +933,7 @@
     </script>
 
     <script src="script.js"></script>
+
 </body>
 
 </html>
